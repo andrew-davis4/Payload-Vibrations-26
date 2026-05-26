@@ -2,7 +2,7 @@
 
 A vibration dampening system for July 2026 QRET rocket payload based on Arduino Nano. 
 
-The board uses an onboard MPU6050 IMU to detect acceleration and tilt changes in real time, applies Kalman filtering to clean the signal, and drives two SG90 servos through a PCA9685 PWM driver to actively counteract motion — keeping the payload stable during flight.
+The board uses an onboard MPU6050 IMU to detect acceleration and tilt changes in real time, applies a single axis Kalman filter library to clean the noisy signal, and drives four SG90 servos through a PCA9685 PWM driver to actively counteract motion, keeping the payload stable during flight.
 
 ---
 
@@ -15,7 +15,7 @@ MPU6050 (IMU)
               └─▶ ServoController    sends PWM signal to PCA9685 → moves X and Y servos
 ```
 
-The control strategy is **open-loop feed-forward** — no PID, no position feedback. Servo position is calculated directly from the filtered IMU output. All tuning constants (gains, deadband, servo limits) live in one place: `include/Config.h`.
+The control is **open-loop feed-forward**; no PID, no position feedback. Servo position is calculated directly from the filtered IMU output. All tuning constants (gains, deadband, servo limits) live in one place: `include/Config.h`. Test plans, future iterations, and more components would be needed to make this a closed loop control system.
 
 ---
 
@@ -56,7 +56,7 @@ Payload-Vibrations-26/
 | Servo Y1 | SG90 | PCA9685 ch.13 |
 | Servo Y2 | SG90 | PCA9685 ch.12 |
 
-The PCB is pre-assembled and you do not need to wire anything. Just plug in USB and use the IDE instructions below to flash/test new code.
+The PCB is pre-assembled and you do not need to wire anything. Just plug in USB and use the IDE instructions below to flash/test/change the code.
 
 ---
 
@@ -120,7 +120,7 @@ If you see errors about missing headers, make sure you opened the **root folder*
 
 > **On startup the device runs a calibration routine — keep the PCB flat and still for ~1 second after plugging in.**
 
----
+<!-- ---
 
 ## Making and Testing Changes
 
@@ -189,4 +189,4 @@ Managed automatically by PlatformIO — no manual installation needed:
 
 - [Adafruit PWM Servo Driver Library](https://github.com/adafruit/Adafruit-PWM-Servo-Driver-Library)
 - [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO) (pulled in automatically)
-- Wire (Arduino built-in)
+- Wire (Arduino built-in) -->
