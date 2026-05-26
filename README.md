@@ -1,6 +1,8 @@
 # Payload Vibrations — 2D Planar Bearing Dampening System
 
-An Arduino Nano–based vibration dampening system for a rocket payload. The board uses an MPU6050 IMU to detect vibration and tilt in real time, applies Kalman filtering to clean the signal, and drives two SG90 servos through a PCA9685 PWM driver to actively counteract motion — keeping the payload stable during flight.
+A vibration dampening system for July 2026 QRET rocket payload based on Arduino Nano. 
+
+The board uses an onboard MPU6050 IMU to detect acceleration and tilt changes in real time, applies Kalman filtering to clean the signal, and drives two SG90 servos through a PCA9685 PWM driver to actively counteract motion — keeping the payload stable during flight.
 
 ---
 
@@ -22,16 +24,22 @@ The control strategy is **open-loop feed-forward** — no PID, no position feedb
 ```
 Payload-Vibrations-26/
 ├── include/
-│   ├── Config.h               ← ALL tunable constants — start here
-│   ├── Types.h                ← Shared data structs (IMUData, ServoCommand, etc.)
-│   ├── Kalman.h / .cpp        ← Kalman filter (single axis)
-│   ├── I2CHelper.h / .cpp     ← I2C bus read/write with timeout + recovery
-│   ├── IMUManager.h / .cpp    ← MPU6050 init, read, filter
-│   ├── ServoController.h/.cpp ← PCA9685 init, pulse output, clamping
-│   ├── MotionController.h/.cpp← Feed-forward tilt → servo mapping
-│   └── CalibrationManager.h/.cpp ← Startup bias calibration
+|   ├── CalibrationManager.h        ← Startup calibration
+│   ├── Config.h                    ← ALL constants 
+│   ├── I2CHelper.h                 ← I2C bus read/write + timeout recovery
+│   ├── IMUManager.h                ← MPU6050 init, read, filter
+│   ├── Kalman.h                    ← Single axis Kalman filter library
+│   ├── MotionController.h          ← Feed-forward tilt and servo mapping
+│   ├── ServoController.h           ← PCA9685 init, PWM pulse output, clamping
+│   └── Types.h                     ← Custom structs
 └── src/
-    └── main.cpp               ← setup() and loop() only
+    ├── CalibrationManager.cpp
+    ├── I2CHelper.cpp
+    ├── IMUManager.cpp
+    ├── Kalman.cpp                  ← Kalman filter source code
+    ├── main.cpp                    ← setup() and loop() only
+    ├── MotionController.cpp
+    └── ServoController.cpp
 ```
 
 ---
@@ -43,41 +51,43 @@ Payload-Vibrations-26/
 | Microcontroller | Arduino Nano (ATmega328P) | — |
 | IMU | MPU6050 | I2C @ 0x68 |
 | PWM Driver | PCA9685 | I2C @ 0x40 |
-| Servo X | SG90 | PCA9685 ch.15 |
-| Servo Y | SG90 | PCA9685 ch.14 |
+| Servo X1 | SG90 | PCA9685 ch.15 |
+| Servo X2 | SG90 | PCA9685 ch.14 |
+| Servo Y1 | SG90 | PCA9685 ch.13 |
+| Servo Y2 | SG90 | PCA9685 ch.12 |
 
-The PCB comes pre-assembled. You do not need to wire anything — just plug in USB and flash.
+The PCB is pre-assembled and you do not need to wire anything. Just plug in USB and use the IDE instructions below to flash/test new code.
 
 ---
 
-## Setting Up Your Development Environment
+## Steps to set up the Dev environment to test the board
 
 ### 1. Install VS Code
 
-1. Go to [https://code.visualstudio.com](https://code.visualstudio.com) and download the installer for your OS
-2. Run the installer — default options are fine
+1. Download from [https://code.visualstudio.com](https://code.visualstudio.com)
+2. Run the installer with default options
 3. Launch VS Code
 
 ### 2. Install the PlatformIO Extension
 
 1. In VS Code, click the **Extensions** icon in the left sidebar (or press `Ctrl+Shift+X`)
 2. Search for **PlatformIO IDE**
-3. Click **Install** — this will also install Python dependencies automatically (takes a few minutes)
+3. Click **Install**
 4. When it finishes, **restart VS Code** when prompted
-5. You should now see a PlatformIO alien-head icon in the left sidebar
+5. You should now see PlatformIO (alien-head icon) in the left sidebar
 
-### 3. Install Git
+### 3. (Optional) Install Git (For making software changes)
 
 If you don't already have Git installed:
 
-1. Go to [https://git-scm.com/download/win](https://git-scm.com/download/win) (or mac/linux as appropriate)
-2. Run the installer — default options are fine
-3. Verify it worked by opening a terminal and running:
+1. Download from [https://git-scm.com/download/win](https://git-scm.com/download/win)
+2. Run the installer, with default options
+3. Verify it works by opening a git bash terminal and running:
    ```
    git --version
    ```
 
-### 4. Clone the Repository
+### 4. (Optional) Clone the Repository
 
 1. Open VS Code
 2. Press `Ctrl+Shift+P` to open the command palette
@@ -86,8 +96,8 @@ If you don't already have Git installed:
    ```
    https://github.com/andrew-davis4/Payload-Vibrations-26.git
    ```
-5. Choose a folder on your machine to save it into
-6. When VS Code asks **"Would you like to open the cloned repository?"** — click **Open**
+5. Choose a folder on your machine to save it into (Some local projects folder for QRET)
+6. When VS Code asks **"Would you like to open the cloned repository?"**, click **Open**
 7. PlatformIO will detect the `platformio.ini` and configure the project automatically
 
 ### 5. Build the Project
